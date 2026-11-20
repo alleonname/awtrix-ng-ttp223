@@ -1,0 +1,13 @@
+name: Find button code
+on: workflow_dispatch
+jobs:
+  find:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Pins 26 / 27 / 14 and button setup
+        run: |
+          grep -rnE "EasyButton|OneButton|INPUT_PULLUP|GPIO_PULLUP|gpio_config|gpio_set_pull|BUTTON|button" \
+            src lib --include=*.cpp --include=*.h --include=*.c --include=*.hpp | head -150
+      - name: Env names
+        run: grep -nE "^\[env" platformio.ini
