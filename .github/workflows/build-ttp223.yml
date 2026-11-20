@@ -1,0 +1,37 @@
+name: Build TTP223 firmware
+on: workflow_dispatch
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PlatformIO
+        run: pip install platformio
+
+      - name: Buttons for TTP223 (active HIGH, no pull-up)
+        run: |
+          sed -i \
+            -e 's/pinMode(pins_\.\(btn[A-Za-z]*\), INPUT_PULLUP)/pinMode(pins_.\1, INPUT)/' \
+            -e 's/digitalRead(pins_\.\(btn[A-Za-z]*\)) == LOW/digitalRead(pins_.\1) == HIGH/' \
+            src/hal/Esp32Board.cpp
+          sed -i 's/esp_sleep_enable_ext0_wakeup(g, 0)/esp_sleep_enable_ext0_wakeup(g, 1)/' \
+            src/system/DeviceServices.h
+          echo "=== wake context ==="
+          sed -n 45,65p src/system/DeviceServices.h
+          git diff
+          test "$(grep -c 'INPUT_PULLUP' src/hal/Esp32Board.cpp)" = "0"
+          test "$(grep -c '== HIGH' src/hal/Esp32Board.cpp)" = "3"
+          grep -q 'ext0_wakeup(g, 1)' src/system/DeviceServices.h
+
+      - name: Build
+        run: pio run -e awtrix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: awtrix-ng-ttp223
+          path: .pio/build/awtrix/*.bin
