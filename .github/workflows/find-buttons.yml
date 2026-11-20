@@ -5,9 +5,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Pins 26 / 27 / 14 and button setup
+      - name: Esp32Board.cpp
+        run: cat -n src/hal/Esp32Board.cpp | head -200
+      - name: Other uses of button pins
         run: |
-          grep -rnE "EasyButton|OneButton|INPUT_PULLUP|GPIO_PULLUP|gpio_config|gpio_set_pull|BUTTON|button" \
-            src lib --include=*.cpp --include=*.h --include=*.c --include=*.hpp | head -150
-      - name: Env names
-        run: grep -nE "^\[env" platformio.ini
+          grep -rnE "btnLeft|btnSelect|btnRight|digitalRead|ext0|ext1|esp_sleep_enable|gpio_wakeup" \
+            src --include=*.cpp --include=*.h | grep -v "platform/linux\|platform/tc002"
